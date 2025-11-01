@@ -64,7 +64,6 @@
   <div class="container">
     <div class="card" role="region" aria-labelledby="titulo">
       <header>
-        <!-- Sube gnomon_logo.png al MISMO directorio -->
         <img src="./gnomon_logo.png" alt="Logo GNOMON" onerror="this.src='https://placehold.co/88x88/png';" />
         <div>
           <h1 id="titulo">Solicitud de cita — Recepción de equipo</h1>
@@ -72,8 +71,7 @@
         </div>
       </header>
 
-      <!-- ✅ Reemplaza ACTION_FORMSPREE por tu endpoint real de Formspree -->
-      <form id="form-cita" method="post" action="https://formspree.io/f/REEMPLAZA_AQUI" novalidate>
+      <form id="form-cita" novalidate>
         <!-- 1. Datos del cliente -->
         <fieldset>
           <legend>1) Datos del cliente</legend>
@@ -171,7 +169,7 @@
 
         <!-- Mensajes -->
         <p class="error" id="err_general" role="alert">Por favor completa los campos obligatorios y acepta las autorizaciones.</p>
-        <p class="success" id="ok_general" role="status">¡Registro enviado! Gracias por tu solicitud.</p>
+        <p class="success" id="ok_general" role="status">Guardando…</p>
 
         <!-- Acciones -->
         <div class="actions">
@@ -189,78 +187,125 @@
     </div>
   </div>
 
-  <script>
-    (function(){
-      const modPres = document.getElementById('mod_pres');
-      const modEnv  = document.getElementById('mod_env');
-      const lblFecha = document.getElementById('lbl_fecha');
-      const form = document.getElementById('form-cita');
-      const err = document.getElementById('err_general');
-      const ok = document.getElementById('ok_general');
-      const btn = document.getElementById('btn-enviar');
-      const fecha = document.getElementById('fecha_programada');
+  <!-- Firebase SDKs (CDN, módulos v10+) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-      // min = hoy (para navegadores modernos)
-      const hoy = new Date(); hoy.setHours(0,0,0,0);
-      const iso = hoy.toISOString().split('T')[0];
-      fecha.setAttribute('min', iso);
+    // 🔐 Tu configuración (la que me pasaste)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJFrY3gZKtSeQihyiKsRoFrnQmQxbeZ9w",
+      authDomain: "gnomonlaboratorio.firebaseapp.com",
+      projectId: "gnomonlaboratorio",
+      storageBucket: "gnomonlaboratorio.firebasestorage.app",
+      messagingSenderId: "412422773771",
+      appId: "1:412422773771:web:bc534ea42b520281557b0e",
+      measurementId: "G-XXNYH8NH01"
+    };
 
-      function updateFechaLabel(){
-        lblFecha.textContent = modEnv.checked ? 'Fecha estimada de envío' : 'Fecha en que traerá el equipo';
-      }
-      modPres.addEventListener('change', updateFechaLabel);
-      modEnv.addEventListener('change', updateFechaLabel);
-      updateFechaLabel();
+    // ▶️ Inicializar
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-      form.addEventListener('submit', async function(e){
-        e.preventDefault();
-        err.style.display = 'none'; ok.style.display = 'none';
-        form.classList.add('is-sending'); btn.disabled = true;
+    // UI refs
+    const form = document.getElementById('form-cita');
+    const err = document.getElementById('err_general');
+    const ok = document.getElementById('ok_general');
+    const btn = document.getElementById('btn-enviar');
+    const fecha = document.getElementById('fecha_programada');
+    const modPres = document.getElementById('mod_pres');
+    const modEnv  = document.getElementById('mod_env');
+    const lblFecha = document.getElementById('lbl_fecha');
 
-        // Validación mínima en front
-        const requiredIds = ['identificacion','nombre_razon','telefono','email','tipo_equipo','marca','fecha_programada'];
-        for(const id of requiredIds){
-          const el = document.getElementById(id);
-          if(!el || !el.value){
-            err.style.display = 'block';
-            form.classList.remove('is-sending'); btn.disabled = false;
-            return;
-          }
-        }
-        const c1 = document.getElementById('c_priv');
-        const c2 = document.getElementById('c_msg');
-        if(!c1.checked || !c2.checked){
+    // Fecha mínima = hoy
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const iso = hoy.toISOString().split('T')[0];
+    fecha.setAttribute('min', iso);
+
+    function updateFechaLabel(){
+      lblFecha.textContent = modEnv.checked ? 'Fecha estimada de envío' : 'Fecha en que traerá el equipo';
+    }
+    modPres.addEventListener('change', updateFechaLabel);
+    modEnv.addEventListener('change', updateFechaLabel);
+    updateFechaLabel();
+
+    // 🔓 Login anónimo (habilítalo en Firebase Authentication)
+    signInAnonymously(auth).catch(() => {
+      // si falla auth, mostramos un error simple
+      err.textContent = "No fue posible autenticar la sesión. Intenta nuevamente.";
+      err.style.display = 'block';
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      // listo para guardar cuando haya user
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.style.display = 'none';
+      ok.style.display = 'none';
+      form.classList.add('is-sending'); btn.disabled = true;
+
+      // Validación mínima
+      const requiredIds = ['identificacion','nombre_razon','telefono','email','tipo_equipo','marca','fecha_programada'];
+      for(const id of requiredIds){
+        const el = document.getElementById(id);
+        if(!el || !el.value){
           err.style.display = 'block';
+          err.textContent = 'Por favor completa los campos obligatorios y acepta las autorizaciones.';
           form.classList.remove('is-sending'); btn.disabled = false;
           return;
         }
+      }
+      const c1 = document.getElementById('c_priv');
+      const c2 = document.getElementById('c_msg');
+      if(!c1.checked || !c2.checked){
+        err.style.display = 'block';
+        err.textContent = 'Debes aceptar las autorizaciones.';
+        form.classList.remove('is-sending'); btn.disabled = false;
+        return;
+      }
 
-        // ✅ Envío a Formspree (funciona en GitHub Pages)
-        try {
-          const endpoint = form.getAttribute('action'); // tu URL de Formspree
-          const data = new FormData(form);
+      // Tomar valores
+      const data = {
+        tipo_cliente: document.querySelector('input[name="tipo_cliente"]:checked')?.value || 'Persona',
+        identificacion: document.getElementById('identificacion').value.trim(),
+        nombre_razon: document.getElementById('nombre_razon').value.trim(),
+        telefono: document.getElementById('telefono').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        tipo_equipo: document.getElementById('tipo_equipo').value,
+        marca: document.getElementById('marca').value.trim(),
+        modelo: document.getElementById('modelo').value.trim(),
+        modalidad: document.querySelector('input[name="modalidad"]:checked')?.value || 'Presencial',
+        fecha_programada: document.getElementById('fecha_programada').value,
+        acepta_politica: c1.checked,
+        acepta_mensajeria: c2.checked,
+        creado_en: serverTimestamp(),
+        estado: "solicitud_recibida"
+      };
 
-          // (opcional) asunto legible en el correo
-          data.append('_subject', 'Nueva Solicitud de Cita — GNOMON');
-          // (opcional) redirección tras éxito (si prefieres otra página)
-          // data.append('_next', 'https://tuusuario.github.io/tu-repo/gracias.html');
+      try {
+        // 💾 Guardar en Firestore: colección equipos_gnomon
+        const colRef = collection(db, 'equipos_gnomon');
+        await addDoc(colRef, data);
 
-          const resp = await fetch(endpoint, { method: 'POST', body: data, headers: { 'Accept': 'application/json' } });
-
-          if (resp.ok) {
-            ok.style.display = 'block';
-            form.reset();
-          } else {
-            err.style.display = 'block';
-          }
-        } catch (e2) {
-          err.style.display = 'block';
-        } finally {
-          form.classList.remove('is-sending'); btn.disabled = false;
-        }
-      });
-    })();
+        // Redirigir a gracias.html con datos clave para personalizar mensaje
+        const params = new URLSearchParams({
+          nombre: data.nombre_razon,
+          modalidad: data.modalidad,
+          fecha: data.fecha_programada
+        });
+        window.location.href = `./gracias.html?${params.toString()}`;
+      } catch (e2) {
+        console.error(e2);
+        err.textContent = 'Ocurrió un error guardando la solicitud. Intenta nuevamente.';
+        err.style.display = 'block';
+      } finally {
+        form.classList.remove('is-sending'); btn.disabled = false;
+      }
+    });
   </script>
 </body>
 </html>
-
