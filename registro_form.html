@@ -3,241 +3,166 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GNOMON Topografía — Solicitud de cita (Recepción de equipo)</title>
-  <meta name="description" content="Formulario de solicitud de cita para recepción o envío de equipos al laboratorio GNOMON Topografía." />
+  <title>GNOMON Topografía — Registro de Recepción</title>
+  <meta name="description" content="Formulario de registro para la recepción o envío de equipos al laboratorio GNOMON Topografía.">
   <style>
-    :root{
-      --bg:#f5f2e8; --fg:#1f2937; --muted:#6b7280; --accent:#111827; --ok:#065f46; --danger:#991b1b; --card:#ffffff; --border:#e5e7eb;
-      --focus:#2563eb;
+    :root {
+      --bg:#f5f2e8; --fg:#1f2937; --muted:#6b7280; --accent:#111827; --ok:#065f46; 
+      --danger:#991b1b; --card:#ffffff; --border:#e5e7eb; --focus:#2563eb;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Noto Sans",sans-serif;color:var(--fg);background:var(--bg);line-height:1.35}
-
-    .container{max-width:880px;margin:auto;padding:24px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 20px rgba(0,0,0,.05);overflow:hidden}
-
-    header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;gap:16px;align-items:center}
-    header img{width:56px;height:56px;object-fit:contain}
-    header h1{font-size:1.25rem;margin:0}
-    header p{margin:4px 0 0;color:var(--muted);font-size:.95rem}
-
-    form{padding:20px 24px}
-    fieldset{border:none;padding:0;margin:0 0 22px}
-    legend{font-weight:700;margin-bottom:10px}
-
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    @media (max-width:720px){.grid{grid-template-columns:1fr}}
-
-    label{display:block;font-weight:600;margin:6px 0}
-    .hint{color:var(--muted);font-size:.9rem;margin:6px 0 0}
-
-    input[type=text],input[type=tel],input[type=email],input[type=date],select{
-      width:100%;padding:12px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;font-size:1rem
+    body {
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica Neue,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--fg);
+      line-height:1.4;
     }
-    input:focus,select:focus{outline:2px solid var(--focus);outline-offset:2px}
-
+    .container{max-width:880px;margin:auto;padding:20px}
+    .card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 16px rgba(0,0,0,.05)}
+    header{padding:20px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--border)}
+    header img{width:64px;height:64px;object-fit:contain}
+    header h1{margin:0;font-size:1.3rem}
+    header p{margin:4px 0 0;color:var(--muted)}
+    form{padding:20px}
+    fieldset{border:none;padding:0;margin-bottom:20px}
+    legend{font-weight:700;margin-bottom:10px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:720px){.grid{grid-template-columns:1fr}}
+    label{display:block;font-weight:600;margin:6px 0}
+    input,select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px}
+    input:focus,select:focus{outline:2px solid var(--focus);outline-offset:1px}
     .segmented{display:flex;border:1px solid var(--border);border-radius:12px;overflow:hidden}
     .segmented input{display:none}
-    .segmented label{flex:1;padding:10px 12px;text-align:center;cursor:pointer;background:#fff;user-select:none}
+    .segmented label{flex:1;padding:10px;text-align:center;cursor:pointer;background:#fff}
     .segmented input:checked + label{background:var(--accent);color:#fff}
-
-    .consents{background:#fafafa;border:1px solid var(--border);border-radius:12px;padding:12px}
-    .consents label{font-weight:500}
-
-    .error{color:var(--danger);font-size:.95rem;display:none;margin:10px 0}
-    .success{color:var(--ok);font-size:.95rem;display:none;margin:10px 0}
-
-    .actions{display:flex;gap:12px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
-    button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+    .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+    button{border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
     .primary{background:var(--accent);color:#fff}
-    .secondary{background:#fff;color:var(--fg);border:1px solid var(--border)}
-    .primary:focus,.secondary:focus{outline:2px solid var(--focus);outline-offset:2px}
-
-    footer{padding:16px 24px;border-top:1px solid var(--border);color:var(--muted);font-size:.9rem;background:#fff}
-    a{color:inherit} a:hover{text-decoration:none}
-
-    /* Estado de envío simple */
-    .is-sending{opacity:.6;pointer-events:none}
+    .secondary{background:#fff;border:1px solid var(--border)}
+    .error{color:var(--danger);display:none;margin:10px 0}
+    footer{padding:16px;border-top:1px solid var(--border);background:#fff;color:var(--muted);font-size:.9rem}
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="card" role="region" aria-labelledby="titulo">
+    <div class="card">
       <header>
-        <!-- 🔷 LOGO: sube gnomon_logo.png al mismo directorio del HTML y deja esta ruta -->
-        <!-- Si lo pones en /img/gnomon_logo.png cambia a src="./img/gnomon_logo.png" -->
-        <img src="./gnomon_logo.png" alt="Logo GNOMON" onerror="this.src='https://placehold.co/88x88/png';" />
+        <!-- 🔷 Logo de Gnomon (sube gnomon_logo.png al mismo repositorio, junto al index.html) -->
+        <img src="./gnomon_logo.png" alt="Logo Gnomon" onerror="this.style.display='none'">
         <div>
-          <h1 id="titulo">Solicitud de cita — Recepción de equipo</h1>
-          <p>Completa los datos básicos. Funciona para <strong>presencial</strong> o <strong>envío</strong>.</p>
+          <h1>Registro de Recepción de Equipos</h1>
+          <p>Completa los datos para registrar el ingreso o envío de tu equipo al laboratorio GNOMON Topografía.</p>
         </div>
       </header>
 
-      <!-- ⚠️ Reemplaza 'action' por tu endpoint real cuando lo tengas listo -->
-      <form id="form-cita" method="post" action="https://example.com/api/gnomon/registro-recepcion" novalidate>
-        <!-- 1. Datos del cliente -->
+      <form id="form-cita" method="post" action="#" novalidate>
         <fieldset>
-          <legend>1) Datos del cliente</legend>
-          <div class="grid" role="group" aria-label="Tipo de cliente">
+          <legend>1️⃣ Datos del cliente</legend>
+          <div class="grid">
             <div>
-              <label>Tipo de cliente</label>
-              <div class="segmented" role="tablist" aria-label="Tipo de cliente">
-                <input type="radio" id="cli_persona" name="tipo_cliente" value="Persona" checked>
-                <label for="cli_persona" role="tab" aria-selected="true">Persona</label>
-                <input type="radio" id="cli_empresa" name="tipo_cliente" value="Empresa">
-                <label for="cli_empresa" role="tab" aria-selected="false">Empresa</label>
-              </div>
+              <label for="nombre">Nombre / Empresa</label>
+              <input type="text" id="nombre" name="nombre" required placeholder="Ej. Sergio Espinosa o VINUS S.A.S.">
             </div>
             <div>
-              <label for="identificacion">Cédula o NIT</label>
-              <input id="identificacion" name="identificacion" type="text" inputmode="numeric" autocomplete="off" required placeholder="Ej. 123456789-1" />
-            </div>
-            <div>
-              <label for="nombre_razon">Nombre completo o Razón social</label>
-              <input id="nombre_razon" name="nombre_razon" type="text" required placeholder="Ej. Sergio Espinosa / Topografía Andina SAS" />
-            </div>
-            <div>
-              <label for="telefono">Teléfono o WhatsApp</label>
-              <input id="telefono" name="telefono" type="tel" required placeholder="Ej. +57 315 299 9158" />
+              <label for="telefono">Teléfono / WhatsApp</label>
+              <input type="tel" id="telefono" name="telefono" required placeholder="+57 315 299 9158">
             </div>
             <div>
               <label for="email">Correo electrónico</label>
-              <input id="email" name="email" type="email" required placeholder="Ej. contacto@gnomon.com" />
+              <input type="email" id="email" name="email" required placeholder="correo@ejemplo.com">
+            </div>
+            <div>
+              <label for="identificacion">Cédula o NIT</label>
+              <input type="text" id="identificacion" name="identificacion" required placeholder="123456789-1">
             </div>
           </div>
         </fieldset>
 
-        <!-- 2. Datos del equipo -->
         <fieldset>
-          <legend>2) Datos del equipo</legend>
+          <legend>2️⃣ Información del equipo</legend>
           <div class="grid">
             <div>
-              <label for="tipo_equipo">Tipo de equipo</label>
-              <select id="tipo_equipo" name="tipo_equipo" required>
-                <option value="">Selecciona…</option>
+              <label for="tipo">Tipo de equipo</label>
+              <select id="tipo" name="tipo" required>
+                <option value="">Selecciona...</option>
                 <option>Estación Total</option>
-                <option>Nivel automático</option>
+                <option>Nivel Automático</option>
                 <option>Receptor GNSS</option>
                 <option>Teodolito</option>
-                <option>Distanciómetro</option>
-                <option>Accesorio</option>
+                <option>Otro</option>
               </select>
             </div>
             <div>
               <label for="marca">Marca</label>
-              <input id="marca" name="marca" type="text" required placeholder="Ej. Leica, Topcon, Sokkia" />
+              <input type="text" id="marca" name="marca" required placeholder="Ej. Sokkia, Leica, Topcon">
             </div>
             <div>
-              <label for="modelo">Modelo (opcional)</label>
-              <input id="modelo" name="modelo" type="text" placeholder="Ej. TS06, B40A, GRX3" />
+              <label for="modelo">Modelo</label>
+              <input type="text" id="modelo" name="modelo" placeholder="Ej. CX-105, TS06, B40A">
+            </div>
+            <div>
+              <label for="serial">Serial / ID</label>
+              <input type="text" id="serial" name="serial" placeholder="Ej. CX105-4432">
             </div>
           </div>
         </fieldset>
 
-        <!-- 3. Modalidad y fecha programada -->
         <fieldset>
-          <legend>3) Modalidad y fecha</legend>
+          <legend>3️⃣ Fecha y modalidad</legend>
           <div class="grid">
             <div>
               <label>Modalidad</label>
               <div class="segmented">
-                <input type="radio" id="mod_pres" name="modalidad" value="Presencial" checked>
-                <label for="mod_pres">Presencial</label>
-                <input type="radio" id="mod_env" name="modalidad" value="Envio">
-                <label for="mod_env">Envío</label>
+                <input type="radio" id="presencial" name="modalidad" value="Presencial" checked>
+                <label for="presencial">Presencial</label>
+                <input type="radio" id="envio" name="modalidad" value="Envío">
+                <label for="envio">Envío</label>
               </div>
             </div>
             <div>
-              <label id="lbl_fecha" for="fecha_programada">Fecha en que traerá el equipo</label>
-              <input id="fecha_programada" name="fecha_programada" type="date" required />
-              <p class="hint" id="hint_fecha">Si eliges envío, será la fecha estimada de despacho.</p>
+              <label for="fecha">Fecha programada</label>
+              <input type="date" id="fecha" name="fecha" required>
             </div>
           </div>
         </fieldset>
 
-        <!-- 4. Consentimientos -->
         <fieldset>
-          <legend>4) Autorizaciones</legend>
-          <div class="consents">
-            <div style="margin-bottom:10px">
-              <input id="c_priv" name="acepta_politica" type="checkbox" required>
-              <label for="c_priv">He leído y acepto la <a href="#" target="_blank" rel="noopener">Política de Tratamiento de Datos Personales</a>.</label>
-            </div>
-            <div>
-              <input id="c_msg" name="acepta_mensajeria" type="checkbox" required>
-              <label for="c_msg">Autorizo recibir recordatorios por WhatsApp/SMS y correo electrónico relacionados con mi solicitud.</label>
-            </div>
-          </div>
+          <legend>4️⃣ Autorizaciones</legend>
+          <label><input type="checkbox" required> Acepto la política de tratamiento de datos personales.</label><br>
+          <label><input type="checkbox" required> Autorizo recibir recordatorios por correo o WhatsApp.</label>
         </fieldset>
 
-        <!-- Mensajes -->
-        <p class="error" id="err_general" role="alert">Por favor completa los campos obligatorios y acepta las autorizaciones.</p>
-        <p class="success" id="ok_general" role="status">¡Registro enviado! Gracias por tu solicitud.</p>
+        <p class="error" id="msg-error">Por favor completa todos los campos obligatorios.</p>
 
-        <!-- Acciones -->
         <div class="actions">
           <button type="reset" class="secondary">Limpiar</button>
-          <button id="btn-enviar" type="submit" class="primary">Enviar solicitud</button>
+          <button type="submit" class="primary">Enviar</button>
         </div>
       </form>
 
       <footer>
-        <p>
-          Al enviar este formulario, aceptas que GNOMON Topografía trate tus datos con la finalidad de gestionar la cita de recepción.
-          Podrás ejercer tus derechos de acceso, rectificación y supresión conforme a la Política de Datos.
-        </p>
+        <p>© GNOMON Topografía. Los datos enviados se utilizarán únicamente para la gestión de recepción de equipos conforme a la Ley 1581 de 2012.</p>
       </footer>
     </div>
   </div>
 
   <script>
-    (function(){
-      const modPres = document.getElementById('mod_pres');
-      const modEnv  = document.getElementById('mod_env');
-      const lblFecha = document.getElementById('lbl_fecha');
-      const form = document.getElementById('form-cita');
-      const err = document.getElementById('err_general');
-      const ok = document.getElementById('ok_general');
-      const btn = document.getElementById('btn-enviar');
-
-      function updateFechaLabel(){
-        if(modEnv.checked){
-          lblFecha.textContent = 'Fecha estimada de envío';
-        } else {
-          lblFecha.textContent = 'Fecha en que traerá el equipo';
+    const form = document.getElementById('form-cita');
+    const error = document.getElementById('msg-error');
+    form.addEventListener('submit', e=>{
+      const required = form.querySelectorAll('[required]');
+      for(const input of required){
+        if(!input.value){
+          e.preventDefault();
+          error.style.display='block';
+          setTimeout(()=>error.style.display='none',3000);
+          return;
         }
       }
-      modPres.addEventListener('change', updateFechaLabel);
-      modEnv.addEventListener('change', updateFechaLabel);
-      updateFechaLabel();
-
-      form.addEventListener('submit', function(e){
-        err.style.display = 'none'; ok.style.display = 'none';
-        form.classList.add('is-sending'); btn.disabled = true;
-
-        const requiredIds = ['identificacion','nombre_razon','telefono','email','tipo_equipo','marca','fecha_programada'];
-        for(const id of requiredIds){
-          const el = document.getElementById(id);
-          if(!el || !el.value){
-            err.style.display = 'block';
-            form.classList.remove('is-sending'); btn.disabled = false;
-            e.preventDefault();
-            return false;
-          }
-        }
-        const c1 = document.getElementById('c_priv');
-        const c2 = document.getElementById('c_msg');
-        if(!c1.checked || !c2.checked){
-          err.style.display = 'block';
-          form.classList.remove('is-sending'); btn.disabled = false;
-          e.preventDefault();
-          return false;
-        }
-        // Envío estándar (POST) al endpoint del atributo action.
-        // Si aún no tienes backend, mientras tanto puedes usar un servicio tipo Formspree para pruebas.
-      });
-    })();
+      alert('Formulario enviado (modo demostración).');
+      e.preventDefault();
+    });
   </script>
 </body>
 </html>
