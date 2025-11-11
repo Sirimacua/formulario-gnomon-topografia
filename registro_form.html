@@ -187,13 +187,12 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs (CDN, módulos v10+) -->
+  <!-- 🔥 Firebase SDKs y script de guardado -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, addDoc, collection, serverTimestamp, doc, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // 🔐 Tu configuración (la que me pasaste)
     const firebaseConfig = {
       apiKey: "AIzaSyCJFrY3gZKtSeQihyiKsRoFrnQmQxbeZ9w",
       authDomain: "gnomonlaboratorio.firebaseapp.com",
@@ -204,12 +203,11 @@
       measurementId: "G-XXNYH8NH01"
     };
 
-    // ▶️ Inicializar
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    signInAnonymously(auth);
 
-    // UI refs
     const form = document.getElementById('form-cita');
     const err = document.getElementById('err_general');
     const ok = document.getElementById('ok_general');
@@ -221,8 +219,7 @@
 
     // Fecha mínima = hoy
     const hoy = new Date(); hoy.setHours(0,0,0,0);
-    const iso = hoy.toISOString().split('T')[0];
-    fecha.setAttribute('min', iso);
+    fecha.setAttribute('min', hoy.toISOString().split('T')[0]);
 
     function updateFechaLabel(){
       lblFecha.textContent = modEnv.checked ? 'Fecha estimada de envío' : 'Fecha en que traerá el equipo';
@@ -231,44 +228,40 @@
     modEnv.addEventListener('change', updateFechaLabel);
     updateFechaLabel();
 
-    // 🔓 Login anónimo (habilítalo en Firebase Authentication)
-    signInAnonymously(auth).catch(() => {
-      // si falla auth, mostramos un error simple
-      err.textContent = "No fue posible autenticar la sesión. Intenta nuevamente.";
-      err.style.display = 'block';
-    });
+    // 🔢 Generador de código OS global continuo
+    async function generarCodigoOS() {
+      const counterRef = doc(db, 'counters', 'os_global');
+      const seq = await runTransaction(db, async (tx) => {
+        const snap = await tx.get(counterRef);
+        let next = 1;
+        if (!snap.exists()) tx.set(counterRef, { seq: 1, updatedAt: serverTimestamp() });
+        else {
+          next = (snap.data().seq || 0) + 1;
+          tx.update(counterRef, { seq: next, updatedAt: serverTimestamp() });
+        }
+        return next;
+      });
 
-    onAuthStateChanged(auth, (user) => {
-      // listo para guardar cuando haya user
-    });
+      const consecutivo = String(seq).padStart(4, '0');
+      const d = new Date();
+      return `OS-GNO-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${consecutivo}`;
+    }
 
+    // 💾 Guardado
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      err.style.display = 'none';
-      ok.style.display = 'none';
+      err.style.display = 'none'; ok.style.display = 'none';
       form.classList.add('is-sending'); btn.disabled = true;
 
-      // Validación mínima
-      const requiredIds = ['identificacion','nombre_razon','telefono','email','tipo_equipo','marca','fecha_programada'];
-      for(const id of requiredIds){
-        const el = document.getElementById(id);
-        if(!el || !el.value){
-          err.style.display = 'block';
-          err.textContent = 'Por favor completa los campos obligatorios y acepta las autorizaciones.';
-          form.classList.remove('is-sending'); btn.disabled = false;
-          return;
-        }
-      }
       const c1 = document.getElementById('c_priv');
       const c2 = document.getElementById('c_msg');
-      if(!c1.checked || !c2.checked){
-        err.style.display = 'block';
-        err.textContent = 'Debes aceptar las autorizaciones.';
-        form.classList.remove('is-sending'); btn.disabled = false;
-        return;
+      const required = ['identificacion','nombre_razon','telefono','email','tipo_equipo','marca','fecha_programada'];
+      for(const id of required){
+        const el = document.getElementById(id);
+        if(!el || !el.value){ err.style.display='block'; form.classList.remove('is-sending'); btn.disabled=false; return;}
       }
+      if(!c1.checked || !c2.checked){ err.style.display='block'; form.classList.remove('is-sending'); btn.disabled=false; return;}
 
-      // Tomar valores
       const data = {
         tipo_cliente: document.querySelector('input[name="tipo_cliente"]:checked')?.value || 'Persona',
         identificacion: document.getElementById('identificacion').value.trim(),
@@ -287,11 +280,10 @@
       };
 
       try {
-        // 💾 Guardar en Firestore: colección equipos_gnomon
+        const codigo_os = await generarCodigoOS();
         const colRef = collection(db, 'equipos_gnomon');
-        await addDoc(colRef, data);
+        await addDoc(colRef, { ...data, codigo_os });
 
-        // Redirigir a gracias.html con datos clave para personalizar mensaje
         const params = new URLSearchParams({
           nombre: data.nombre_razon,
           modalidad: data.modalidad,
@@ -300,7 +292,7 @@
         window.location.href = `./gracias.html?${params.toString()}`;
       } catch (e2) {
         console.error(e2);
-        err.textContent = 'Ocurrió un error guardando la solicitud. Intenta nuevamente.';
+        err.textContent = 'Error al guardar la solicitud.';
         err.style.display = 'block';
       } finally {
         form.classList.remove('is-sending'); btn.disabled = false;
